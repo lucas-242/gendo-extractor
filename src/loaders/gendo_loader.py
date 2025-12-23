@@ -38,6 +38,11 @@ def filter_new_atendimentos(df: pd.DataFrame) -> pd.DataFrame:
 def format_for_export(df: pd.DataFrame) -> list[list]:
     """Formats DataFrame rows for export."""
     df = df.fillna("")
+
+    df["Forma Pagto"] = df["Forma Pagto"].replace({
+        "PIX (Externo)": "Pix",
+        "*Credito Pacote": "Crédito Pacote"
+    })
     
     rows = []
     for _, row in df.iterrows():
