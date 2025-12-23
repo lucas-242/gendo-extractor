@@ -1,24 +1,18 @@
 import pandas as pd
-from src.loaders.sheets_loader import read_sheet, append_rows
-
-ABA_ATENDIMENTOS_RAW = "Atendimentos RAW"
+from src.services.sheets_service import read_sheet
 
 
-def load_gendo_csv(csv_path: str):
-    # 1. Lê o CSV do Gendo
+def load_gendo_csv(csv_path: str) -> pd.DataFrame:
+    """Loads and processes Gendo CSV."""
     df = pd.read_csv(
         csv_path,
         sep=",",
         encoding="utf-8"
     )
 
-    # 2. Converte Total para número (seguro)
     df["Total"] = pd.to_numeric(df["Total"], errors="coerce")
-
-    # 3. Remove linhas sem valor (opcional, mas recomendado)
     df = df[df["Total"].notna()]
 
-    # 4. Gera ID externo
     df["ID externo"] = (
         df["Cód. Comanda"].astype(str)
         + "|"
@@ -27,34 +21,36 @@ def load_gendo_csv(csv_path: str):
         + df["Total"].astype(str)
     )
 
-    # 5. Lê dados existentes no Sheets
-    existing = read_sheet(ABA_ATENDIMENTOS_RAW)
+    return df
 
-    if not existing.empty:
+
+def filter_new_atendimentos(df: pd.DataFrame) -> pd.DataFrame:
+    """Filters only new appointments that do not exist in the sheet."""
+    existing = read_sheet("Atendimentos RAW")
+    
+    if not existing.empty and "ID externo" in existing.columns:
         existing_ids = set(existing["ID externo"].astype(str))
         df = df[~df["ID externo"].isin(existing_ids)]
+    
+    return df
 
-    if df.empty:
-        print("Nenhum atendimento novo para importar.")
-        return
 
-    # 6. Substitui NaN restantes por vazio (CRÍTICO)
+def format_for_export(df: pd.DataFrame) -> list[list]:
+    """Formats DataFrame rows for export."""
     df = df.fillna("")
-
-    # 7. Monta linhas exatamente no formato da aba
+    
     rows = []
     for _, row in df.iterrows():
         rows.append([
             str(row["Data"]),
             str(row["Colaborador"]),
             str(row["Serviço"]),
+            str(row["Qts"]),
+            str(row["Categoria"]),
             float(row["Total"]),
             str(row["Forma Pagto"]),
             "Gendo",
             str(row["ID externo"]),
         ])
-
-    # 8. Append no Sheets
-    append_rows(ABA_ATENDIMENTOS_RAW, rows)
-
-    print(f"{len(rows)} atendimentos importados com sucesso.")
+    
+    return rows
