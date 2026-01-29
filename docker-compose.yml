@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: studio_postgres
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    ports:
+      - "${POSTGRES_PORT}:5432"
+
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+
+  etl:
+    build: ./etl
+    container_name: studio_etl
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+    volumes:
+      - ./data:/data
+
+volumes:
+  pgdata:

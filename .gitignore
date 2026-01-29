@@ -1,3 +1,7 @@
-credentials.json
-data/input/
-data/output/
+gendo_exporter/credentials.json
+gendo_exporter/data/input/
+gendo_exporter/data/output/
+.env
+/data/
+etl_sheets/data/
+etl_sheets/credentials.json
