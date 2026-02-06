@@ -19,6 +19,7 @@ def parse_decimal(value):
         return None
 
     value = value.strip()
+    
     return float(value)
 
 

@@ -27,7 +27,7 @@ services:
       - ./data:/data
 
   metabase:
-    image: metabase/metabase:latest
+    image: metabase/metabase:0.58.1
     container_name: studio_metabase
     restart: unless-stopped
     depends_on:
